@@ -31,7 +31,10 @@ write_files:
     content: |
       # AV Cyberdeck animated boot splash.
       # Placeholder wordmark ("AV") rendered from text so it works with no
-      # image assets. Swap to Image("logo.png") here once real artwork exists.
+      # image assets. Once real artwork is added to this repo (e.g.
+      # assets/av-logo.png, also copied into this theme dir), replace the
+      # logo_image line below with: logo_image = Image("av-logo.png");
+      # Opacity pulsing (SetOpacity) works the same either way.
 
       Window.SetBackgroundTopColor(0.02, 0.02, 0.03);
       Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
@@ -39,20 +42,16 @@ write_files:
       screen_width = Window.GetWidth();
       screen_height = Window.GetHeight();
 
-      glow_frames[0] = Image.Text("AV", 0.0, 1.0, 0.55, 0.55, "Monospace Bold 140");
-      glow_frames[1] = Image.Text("AV", 0.0, 1.0, 0.55, 0.75, "Monospace Bold 140");
-      glow_frames[2] = Image.Text("AV", 0.0, 1.0, 0.55, 1.0, "Monospace Bold 140");
-      glow_frames[3] = Image.Text("AV", 0.0, 1.0, 0.55, 0.75, "Monospace Bold 140");
-
-      logo_sprite = Sprite(glow_frames[0]);
-      logo_sprite.SetX(screen_width / 2 - glow_frames[0].GetWidth() / 2);
-      logo_sprite.SetY(screen_height / 2 - glow_frames[0].GetHeight() / 2 - 40);
+      logo_image = Image.Text("AV", 0.0, 1.0, 0.55, 1.0, "Monospace Bold 140");
+      logo_sprite = Sprite(logo_image);
+      logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
+      logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 40);
       logo_sprite.SetZ(10);
 
       subtitle_image = Image.Text("C Y B E R D E C K", 0.0, 0.85, 0.5, 0.8, "Monospace 26");
       subtitle_sprite = Sprite(subtitle_image);
       subtitle_sprite.SetX(screen_width / 2 - subtitle_image.GetWidth() / 2);
-      subtitle_sprite.SetY(logo_sprite.GetY() + glow_frames[0].GetHeight() + 10);
+      subtitle_sprite.SetY(logo_sprite.GetY() + logo_image.GetHeight() + 10);
       subtitle_sprite.SetZ(10);
 
       status_image = Image.Text("BOOTING...", 0.0, 1.0, 0.55, 0.9, "Monospace 20");
@@ -73,6 +72,60 @@ write_files:
 
       loader_sprite = Sprite();
       loader_sprite.SetZ(10);
+      loader_y = status_sprite.GetY() + status_image.GetHeight() + 20;
+
+      # Opacity steps used to pulse the logo (works for text or a real image).
+      glow_opacity[0] = 0.55;
+      glow_opacity[1] = 0.75;
+      glow_opacity[2] = 1.0;
+      glow_opacity[3] = 0.75;
+      num_glow_steps = 4;
+
+      # Rolling log of real boot messages (systemd "Starting/Started ..."
+      # lines and any error/warning text) shown beneath the loader bar.
+      max_log_lines = 6;
+      log_top = loader_y + 40;
+      log_text[0] = "";
+      log_text[1] = "";
+      log_text[2] = "";
+      log_text[3] = "";
+      log_text[4] = "";
+      log_text[5] = "";
+      log_sprite[0] = Sprite();
+      log_sprite[1] = Sprite();
+      log_sprite[2] = Sprite();
+      log_sprite[3] = Sprite();
+      log_sprite[4] = Sprite();
+      log_sprite[5] = Sprite();
+
+      i = 0;
+      while (i < max_log_lines) {
+        log_sprite[i].SetZ(10);
+        i = i + 1;
+      }
+
+      fun redraw_log() {
+        i = 0;
+        while (i < max_log_lines) {
+          if (log_text[i] != "") {
+            line_image = Image.Text(log_text[i], 0.1, 0.95, 0.5, 0.7, "Monospace 14");
+            log_sprite[i].SetImage(line_image);
+            log_sprite[i].SetX(screen_width / 2 - line_image.GetWidth() / 2);
+            log_sprite[i].SetY(log_top + i * 20);
+          }
+          i = i + 1;
+        }
+      }
+
+      fun message_callback(text) {
+        i = 0;
+        while (i < max_log_lines - 1) {
+          log_text[i] = log_text[i + 1];
+          i = i + 1;
+        }
+        log_text[max_log_lines - 1] = text;
+        redraw_log();
+      }
 
       glow_tick = 0;
       glow_index = 0;
@@ -84,10 +137,10 @@ write_files:
         if (glow_tick >= 6) {
           glow_tick = 0;
           glow_index = glow_index + 1;
-          if (glow_index >= 4) {
+          if (glow_index >= num_glow_steps) {
             glow_index = 0;
           }
-          logo_sprite.SetImage(glow_frames[glow_index]);
+          logo_sprite.SetOpacity(glow_opacity[glow_index]);
         }
 
         loader_tick = loader_tick + 1;
@@ -100,11 +153,12 @@ write_files:
           loader_image = Image.Text(loader_frames[loader_index], 0.0, 1.0, 0.55, 0.9, "Monospace 24");
           loader_sprite.SetImage(loader_image);
           loader_sprite.SetX(screen_width / 2 - loader_image.GetWidth() / 2);
-          loader_sprite.SetY(status_sprite.GetY() + status_image.GetHeight() + 20);
+          loader_sprite.SetY(loader_y);
         }
       }
 
       Plymouth.SetRefreshFunction(refresh_callback);
+      Plymouth.SetMessageFunction(message_callback);
 keyboard:
   model: pc105
   layout: "us"
