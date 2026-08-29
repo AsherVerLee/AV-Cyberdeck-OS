@@ -30,11 +30,9 @@ write_files:
     permissions: '0644'
     content: |
       # AV Cyberdeck animated boot splash.
-      # Placeholder wordmark ("AV") rendered from text so it works with no
-      # image assets. Once real artwork is added to this repo (e.g.
-      # assets/av-logo.png, also copied into this theme dir), replace the
-      # logo_image line below with: logo_image = Image("av-logo.png");
-      # Opacity pulsing (SetOpacity) works the same either way.
+      # runcmd copies assets/av-logo.png from the boot partition into this
+      # theme's ImageDir before this theme is activated, so it loads here
+      # by its bare filename.
 
       Window.SetBackgroundTopColor(0.02, 0.02, 0.03);
       Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
@@ -42,7 +40,10 @@ write_files:
       screen_width = Window.GetWidth();
       screen_height = Window.GetHeight();
 
-      logo_image = Image.Text("AV", 0.0, 1.0, 0.55, 1.0, "Monospace Bold 140");
+      logo_source = Image("av-logo.png");
+      logo_target_width = 360;
+      logo_target_height = logo_target_width * logo_source.GetHeight() / logo_source.GetWidth();
+      logo_image = logo_source.Scale(logo_target_width, logo_target_height);
       logo_sprite = Sprite(logo_image);
       logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
       logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 40);
@@ -171,6 +172,7 @@ user:
 ssh_pwauth: true
 runcmd:
   - [ systemctl, enable, --now, ssh ]
+  - [ cp, /boot/firmware/assets/av-logo.png, /usr/share/plymouth/themes/av-cyberdeck/av-logo.png ]
   - [ plymouth-set-default-theme, -R, av-cyberdeck ]
   - [ sh, -c, "install -o asherverlee -m 700 -d /home/asherverlee/.config/com.raspberrypi.connect" ]
   - [ sh, -c, "printf '%s\n' 'REPLACE_WITH_YOUR_OWN_RPI_CONNECT_AUTH_KEY' > /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chown asherverlee:asherverlee /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chmod 600 /home/asherverlee/.config/com.raspberrypi.connect/auth.key" ]
