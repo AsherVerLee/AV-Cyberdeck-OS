@@ -12,6 +12,99 @@ apt:
       Check-Date "false";
     };
 timezone: America/Chicago
+write_files:
+  - path: /usr/share/plymouth/themes/av-cyberdeck/av-cyberdeck.plymouth
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Plymouth Theme]
+      Name=AV Cyberdeck
+      Description=Animated AV Cyberdeck boot splash
+      ModuleName=script
+
+      [script]
+      ImageDir=/usr/share/plymouth/themes/av-cyberdeck
+      ScriptFile=/usr/share/plymouth/themes/av-cyberdeck/av-cyberdeck.script
+  - path: /usr/share/plymouth/themes/av-cyberdeck/av-cyberdeck.script
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # AV Cyberdeck animated boot splash.
+      # Placeholder wordmark ("AV") rendered from text so it works with no
+      # image assets. Swap to Image("logo.png") here once real artwork exists.
+
+      Window.SetBackgroundTopColor(0.02, 0.02, 0.03);
+      Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+      screen_width = Window.GetWidth();
+      screen_height = Window.GetHeight();
+
+      glow_frames[0] = Image.Text("AV", 0.0, 1.0, 0.55, 0.55, "Monospace Bold 140");
+      glow_frames[1] = Image.Text("AV", 0.0, 1.0, 0.55, 0.75, "Monospace Bold 140");
+      glow_frames[2] = Image.Text("AV", 0.0, 1.0, 0.55, 1.0, "Monospace Bold 140");
+      glow_frames[3] = Image.Text("AV", 0.0, 1.0, 0.55, 0.75, "Monospace Bold 140");
+
+      logo_sprite = Sprite(glow_frames[0]);
+      logo_sprite.SetX(screen_width / 2 - glow_frames[0].GetWidth() / 2);
+      logo_sprite.SetY(screen_height / 2 - glow_frames[0].GetHeight() / 2 - 40);
+      logo_sprite.SetZ(10);
+
+      subtitle_image = Image.Text("C Y B E R D E C K", 0.0, 0.85, 0.5, 0.8, "Monospace 26");
+      subtitle_sprite = Sprite(subtitle_image);
+      subtitle_sprite.SetX(screen_width / 2 - subtitle_image.GetWidth() / 2);
+      subtitle_sprite.SetY(logo_sprite.GetY() + glow_frames[0].GetHeight() + 10);
+      subtitle_sprite.SetZ(10);
+
+      status_image = Image.Text("BOOTING...", 0.0, 1.0, 0.55, 0.9, "Monospace 20");
+      status_sprite = Sprite(status_image);
+      status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
+      status_sprite.SetY(subtitle_sprite.GetY() + subtitle_image.GetHeight() + 50);
+      status_sprite.SetZ(10);
+
+      loader_frames[0] = "[■□□□□□□□]";
+      loader_frames[1] = "[■■□□□□□□]";
+      loader_frames[2] = "[■■■□□□□□]";
+      loader_frames[3] = "[■■■■□□□□]";
+      loader_frames[4] = "[■■■■■□□□]";
+      loader_frames[5] = "[■■■■■■□□]";
+      loader_frames[6] = "[■■■■■■■□]";
+      loader_frames[7] = "[■■■■■■■■]";
+      num_loader_frames = 8;
+
+      loader_sprite = Sprite();
+      loader_sprite.SetZ(10);
+
+      glow_tick = 0;
+      glow_index = 0;
+      loader_tick = 0;
+      loader_index = 0;
+
+      fun refresh_callback() {
+        glow_tick = glow_tick + 1;
+        if (glow_tick >= 6) {
+          glow_tick = 0;
+          glow_index = glow_index + 1;
+          if (glow_index >= 4) {
+            glow_index = 0;
+          }
+          logo_sprite.SetImage(glow_frames[glow_index]);
+        }
+
+        loader_tick = loader_tick + 1;
+        if (loader_tick >= 10) {
+          loader_tick = 0;
+          loader_index = loader_index + 1;
+          if (loader_index >= num_loader_frames) {
+            loader_index = 0;
+          }
+          loader_image = Image.Text(loader_frames[loader_index], 0.0, 1.0, 0.55, 0.9, "Monospace 24");
+          loader_sprite.SetImage(loader_image);
+          loader_sprite.SetX(screen_width / 2 - loader_image.GetWidth() / 2);
+          loader_sprite.SetY(status_sprite.GetY() + status_image.GetHeight() + 20);
+        }
+      }
+
+      Plymouth.SetRefreshFunction(refresh_callback);
 keyboard:
   model: pc105
   layout: "us"
@@ -24,6 +117,7 @@ user:
 ssh_pwauth: true
 runcmd:
   - [ systemctl, enable, --now, ssh ]
+  - [ plymouth-set-default-theme, -R, av-cyberdeck ]
   - [ sh, -c, "install -o asherverlee -m 700 -d /home/asherverlee/.config/com.raspberrypi.connect" ]
   - [ sh, -c, "printf '%s\n' 'REPLACE_WITH_YOUR_OWN_RPI_CONNECT_AUTH_KEY' > /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chown asherverlee:asherverlee /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chmod 600 /home/asherverlee/.config/com.raspberrypi.connect/auth.key" ]
   - [ sh, -c, "install -o asherverlee -m 700 -d /home/asherverlee/.config/systemd/user/default.target.wants /home/asherverlee/.config/systemd/user/paths.target.wants" ]
