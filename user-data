@@ -34,14 +34,14 @@ write_files:
       # theme's ImageDir before this theme is activated, so it loads here
       # by its bare filename.
 
-      Window.SetBackgroundTopColor(0.02, 0.02, 0.03);
+      Window.SetBackgroundTopColor(0.0, 0.0235, 0.0549);
       Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
 
       screen_width = Window.GetWidth();
       screen_height = Window.GetHeight();
 
       logo_source = Image("av-logo.png");
-      logo_target_width = 360;
+      logo_target_width = 440;
       logo_target_height = logo_target_width * logo_source.GetHeight() / logo_source.GetWidth();
       logo_image = logo_source.Scale(logo_target_width, logo_target_height);
       logo_sprite = Sprite(logo_image);
@@ -49,13 +49,13 @@ write_files:
       logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 40);
       logo_sprite.SetZ(10);
 
-      subtitle_image = Image.Text("C Y B E R D E C K", 0.0, 0.85, 0.5, 0.8, "Monospace 26");
+      subtitle_image = Image.Text("C Y B E R D E C K", 0.6039, 0.6235, 0.0902, 0.8, "Monospace 26");
       subtitle_sprite = Sprite(subtitle_image);
       subtitle_sprite.SetX(screen_width / 2 - subtitle_image.GetWidth() / 2);
       subtitle_sprite.SetY(logo_sprite.GetY() + logo_image.GetHeight() + 10);
       subtitle_sprite.SetZ(10);
 
-      status_image = Image.Text("BOOTING...", 0.0, 1.0, 0.55, 0.9, "Monospace 20");
+      status_image = Image.Text("BOOTING...", 0.3294, 0.7569, 0.9020, 0.9, "Monospace 20");
       status_sprite = Sprite(status_image);
       status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
       status_sprite.SetY(subtitle_sprite.GetY() + subtitle_image.GetHeight() + 50);
@@ -109,7 +109,7 @@ write_files:
         i = 0;
         while (i < max_log_lines) {
           if (log_text[i] != "") {
-            line_image = Image.Text(log_text[i], 0.1, 0.95, 0.5, 0.7, "Monospace 14");
+            line_image = Image.Text(log_text[i], 0.6039, 0.6235, 0.0902, 0.7, "Monospace 14");
             log_sprite[i].SetImage(line_image);
             log_sprite[i].SetX(screen_width / 2 - line_image.GetWidth() / 2);
             log_sprite[i].SetY(log_top + i * 20);
@@ -151,7 +151,7 @@ write_files:
           if (loader_index >= num_loader_frames) {
             loader_index = 0;
           }
-          loader_image = Image.Text(loader_frames[loader_index], 0.0, 1.0, 0.55, 0.9, "Monospace 24");
+          loader_image = Image.Text(loader_frames[loader_index], 0.2235, 0.7686, 0.7137, 0.9, "Monospace 24");
           loader_sprite.SetImage(loader_image);
           loader_sprite.SetX(screen_width / 2 - loader_image.GetWidth() / 2);
           loader_sprite.SetY(loader_y);
