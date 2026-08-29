@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=AV Cyberdeck
+Description=Animated AV Cyberdeck boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/av-cyberdeck
+ScriptFile=/usr/share/plymouth/themes/av-cyberdeck/av-cyberdeck.script

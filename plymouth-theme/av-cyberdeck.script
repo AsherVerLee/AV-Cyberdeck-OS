@@ -1,0 +1,130 @@
+# AV Cyberdeck animated boot splash.
+# The logo is copied into this theme's ImageDir before this theme is
+# activated, so it loads here by its bare filename.
+
+Window.SetBackgroundTopColor(0.0, 0.0235, 0.0549);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+logo_source = Image("av-logo.png");
+logo_target_width = 440;
+logo_target_height = logo_target_width * logo_source.GetHeight() / logo_source.GetWidth();
+logo_image = logo_source.Scale(logo_target_width, logo_target_height);
+logo_sprite = Sprite(logo_image);
+logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
+logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 40);
+logo_sprite.SetZ(10);
+
+subtitle_image = Image.Text("C Y B E R D E C K", 0.6039, 0.6235, 0.0902, 0.8, "Monospace 26");
+subtitle_sprite = Sprite(subtitle_image);
+subtitle_sprite.SetX(screen_width / 2 - subtitle_image.GetWidth() / 2);
+subtitle_sprite.SetY(logo_sprite.GetY() + logo_image.GetHeight() + 10);
+subtitle_sprite.SetZ(10);
+
+status_image = Image.Text("BOOTING...", 0.3294, 0.7569, 0.9020, 0.9, "Monospace 20");
+status_sprite = Sprite(status_image);
+status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
+status_sprite.SetY(subtitle_sprite.GetY() + subtitle_image.GetHeight() + 50);
+status_sprite.SetZ(10);
+
+loader_frames[0] = "[■□□□□□□□]";
+loader_frames[1] = "[■■□□□□□□]";
+loader_frames[2] = "[■■■□□□□□]";
+loader_frames[3] = "[■■■■□□□□]";
+loader_frames[4] = "[■■■■■□□□]";
+loader_frames[5] = "[■■■■■■□□]";
+loader_frames[6] = "[■■■■■■■□]";
+loader_frames[7] = "[■■■■■■■■]";
+num_loader_frames = 8;
+
+loader_sprite = Sprite();
+loader_sprite.SetZ(10);
+loader_y = status_sprite.GetY() + status_image.GetHeight() + 20;
+
+# Opacity steps used to pulse the logo (works for text or a real image).
+glow_opacity[0] = 0.55;
+glow_opacity[1] = 0.75;
+glow_opacity[2] = 1.0;
+glow_opacity[3] = 0.75;
+num_glow_steps = 4;
+
+# Rolling log of real boot messages (systemd "Starting/Started ..."
+# lines and any error/warning text) shown beneath the loader bar.
+max_log_lines = 6;
+log_top = loader_y + 40;
+log_text[0] = "";
+log_text[1] = "";
+log_text[2] = "";
+log_text[3] = "";
+log_text[4] = "";
+log_text[5] = "";
+log_sprite[0] = Sprite();
+log_sprite[1] = Sprite();
+log_sprite[2] = Sprite();
+log_sprite[3] = Sprite();
+log_sprite[4] = Sprite();
+log_sprite[5] = Sprite();
+
+i = 0;
+while (i < max_log_lines) {
+  log_sprite[i].SetZ(10);
+  i = i + 1;
+}
+
+fun redraw_log() {
+  i = 0;
+  while (i < max_log_lines) {
+    if (log_text[i] != "") {
+      line_image = Image.Text(log_text[i], 0.6039, 0.6235, 0.0902, 0.7, "Monospace 14");
+      log_sprite[i].SetImage(line_image);
+      log_sprite[i].SetX(screen_width / 2 - line_image.GetWidth() / 2);
+      log_sprite[i].SetY(log_top + i * 20);
+    }
+    i = i + 1;
+  }
+}
+
+fun message_callback(text) {
+  i = 0;
+  while (i < max_log_lines - 1) {
+    log_text[i] = log_text[i + 1];
+    i = i + 1;
+  }
+  log_text[max_log_lines - 1] = text;
+  redraw_log();
+}
+
+glow_tick = 0;
+glow_index = 0;
+loader_tick = 0;
+loader_index = 0;
+
+fun refresh_callback() {
+  glow_tick = glow_tick + 1;
+  if (glow_tick >= 6) {
+    glow_tick = 0;
+    glow_index = glow_index + 1;
+    if (glow_index >= num_glow_steps) {
+      glow_index = 0;
+    }
+    logo_sprite.SetOpacity(glow_opacity[glow_index]);
+  }
+
+  loader_tick = loader_tick + 1;
+  if (loader_tick >= 10) {
+    loader_tick = 0;
+    loader_index = loader_index + 1;
+    if (loader_index >= num_loader_frames) {
+      loader_index = 0;
+    }
+    loader_image = Image.Text(loader_frames[loader_index], 0.2235, 0.7686, 0.7137, 0.9, "Monospace 24");
+    loader_sprite.SetImage(loader_image);
+    loader_sprite.SetX(screen_width / 2 - loader_image.GetWidth() / 2);
+    loader_sprite.SetY(loader_y);
+  }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetMessageFunction(message_callback);
