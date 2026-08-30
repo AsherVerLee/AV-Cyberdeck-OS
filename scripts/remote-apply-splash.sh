@@ -35,21 +35,37 @@ else
 fi
 
 echo "== Wallpaper =="
+# Earlier version of this script used a competing `pcmanfm --set-wallpaper`
+# autostart entry that raced against the real desktop-manager pcmanfm
+# instance and broke it ("Desktop manager is not active"). Remove that if
+# present, and instead write the config file the real instance already
+# reads on its own - no second process involved.
+rm -f "${PI_HOME}/.config/autostart/av-wallpaper.desktop"
+
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.local/share/av-cyberdeck"
 curl -fsSL -o "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png" "${REPO_RAW}/assets/wallpaper.png"
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
 
-install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.config/autostart"
-cat > "${PI_HOME}/.config/autostart/av-wallpaper.desktop" <<AUTOSTART
-[Desktop Entry]
-Type=Application
-Name=AV Cyberdeck Wallpaper
-Exec=pcmanfm --set-wallpaper=${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png --wallpaper-mode=stretch
-X-GNOME-Autostart-enabled=true
-AUTOSTART
-chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/autostart/av-wallpaper.desktop"
-# Apply immediately if a desktop session is already running.
-sudo -u "${PI_USER}" pcmanfm --set-wallpaper="${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png" --wallpaper-mode=stretch >/dev/null 2>&1 || true
+PCMANFM_DIR="${PI_HOME}/.config/pcmanfm/LXDE-pi"
+DESKTOP_CONF="${PCMANFM_DIR}/desktop-items-0.conf"
+WALLPAPER_PATH="${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
+install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PCMANFM_DIR}"
+if [ -f "${DESKTOP_CONF}" ]; then
+  grep -q '^wallpaper=' "${DESKTOP_CONF}" \
+    && sed -i "s|^wallpaper=.*|wallpaper=${WALLPAPER_PATH}|" "${DESKTOP_CONF}" \
+    || sed -i "/^\[\*\]/a wallpaper=${WALLPAPER_PATH}" "${DESKTOP_CONF}"
+  grep -q '^wallpaper_mode=' "${DESKTOP_CONF}" \
+    && sed -i "s|^wallpaper_mode=.*|wallpaper_mode=stretch|" "${DESKTOP_CONF}" \
+    || sed -i "/^\[\*\]/a wallpaper_mode=stretch" "${DESKTOP_CONF}"
+else
+  cat > "${DESKTOP_CONF}" <<CONF
+[*]
+wallpaper_mode=stretch
+wallpaper_common=1
+wallpaper=${WALLPAPER_PATH}
+CONF
+fi
+chown "${PI_USER}:${PI_USER}" "${DESKTOP_CONF}"
 
 echo "== Dark theme =="
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.config/gtk-3.0"
