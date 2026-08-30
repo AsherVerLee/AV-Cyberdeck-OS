@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=AV Cyberdeck
+Description=Minimal bottom-anchored login screen for AV Cyberdeck
+Author=AV Cyberdeck
+Copyright=none
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Font=Sans
