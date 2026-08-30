@@ -9,17 +9,21 @@ PI_USER=asherverlee
 PI_HOME="/home/${PI_USER}"
 THEME_DIR=/usr/share/plymouth/themes/av-cyberdeck
 REPO_RAW="https://raw.githubusercontent.com/AsherVerLee/AV-Cyberdeck-OS/main"
+# raw.githubusercontent.com caches responses for a few minutes; append a
+# cache-busting query param to every fetch so a just-pushed file is never
+# served stale.
+CB="cb=$(date +%s)"
 
 echo "== Boot splash =="
 mkdir -p "${THEME_DIR}"
-curl -fsSL -o "${THEME_DIR}/av-cyberdeck.plymouth" "${REPO_RAW}/plymouth-theme/av-cyberdeck.plymouth"
-curl -fsSL -o "${THEME_DIR}/av-cyberdeck.script" "${REPO_RAW}/plymouth-theme/av-cyberdeck.script"
-curl -fsSL -o "${THEME_DIR}/av-logo.png" "${REPO_RAW}/assets/av-logo.png"
+curl -fsSL -o "${THEME_DIR}/av-cyberdeck.plymouth" "${REPO_RAW}/plymouth-theme/av-cyberdeck.plymouth?${CB}"
+curl -fsSL -o "${THEME_DIR}/av-cyberdeck.script" "${REPO_RAW}/plymouth-theme/av-cyberdeck.script?${CB}"
+curl -fsSL -o "${THEME_DIR}/av-logo.png" "${REPO_RAW}/assets/av-logo.png?${CB}"
 plymouth-set-default-theme -R av-cyberdeck
 echo "Active theme: $(grep -m1 '^Theme=' /etc/plymouth/plymouthd.conf || echo unknown)"
 
 echo "== MOTD =="
-curl -fsSL -o /etc/update-motd.d/10-av-cyberdeck "${REPO_RAW}/motd/10-av-cyberdeck"
+curl -fsSL -o /etc/update-motd.d/10-av-cyberdeck "${REPO_RAW}/motd/10-av-cyberdeck?${CB}"
 chmod 755 /etc/update-motd.d/10-av-cyberdeck
 
 echo "== Shell prompt =="
@@ -47,9 +51,11 @@ rm -f "${PI_HOME}/.config/autostart/av-wallpaper.desktop"
 rm -f "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
 
 WALLPAPER_PATH=/usr/share/av-cyberdeck/wallpaper.png
+LOGIN_WALLPAPER_PATH=/usr/share/av-cyberdeck/wallpaper-login.png
 install -d -m 755 /usr/share/av-cyberdeck
-curl -fsSL -o "${WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper.png"
-chmod 644 "${WALLPAPER_PATH}"
+curl -fsSL -o "${WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper.png?${CB}"
+curl -fsSL -o "${LOGIN_WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper-login.png?${CB}"
+chmod 644 "${WALLPAPER_PATH}" "${LOGIN_WALLPAPER_PATH}"
 
 PCMANFM_DIR="${PI_HOME}/.config/pcmanfm/LXDE-pi"
 DESKTOP_CONF="${PCMANFM_DIR}/desktop-items-0.conf"
@@ -82,9 +88,9 @@ chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
 echo "== Login screen =="
 GREETER_CONF=/etc/lightdm/pi-greeter.conf
 if grep -q '^background=' "${GREETER_CONF}"; then
-  sed -i "s|^background=.*|background=${WALLPAPER_PATH}|" "${GREETER_CONF}"
+  sed -i "s|^background=.*|background=${LOGIN_WALLPAPER_PATH}|" "${GREETER_CONF}"
 else
-  sed -i "/^\[greeter\]/a background=${WALLPAPER_PATH}" "${GREETER_CONF}"
+  sed -i "/^\[greeter\]/a background=${LOGIN_WALLPAPER_PATH}" "${GREETER_CONF}"
 fi
 raspi-config nonint do_boot_behaviour B3
 echo "Autologin disabled (boot_behaviour=B3); greeter background set."

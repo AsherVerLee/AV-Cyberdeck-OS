@@ -15,6 +15,9 @@ REPO_RAW="https://raw.githubusercontent.com/AsherVerLee/AV-Cyberdeck-OS/main"
 
 echo "Deploying AV Cyberdeck splash to ${TARGET} ..."
 
-ssh -tt "${TARGET}" "curl -fsSL '${REPO_RAW}/scripts/remote-apply-splash.sh' | sudo bash"
+# Cache-bust: raw.githubusercontent.com caches for a few minutes, which has
+# previously served a stale remote-apply-splash.sh right after a push.
+CB="cb=$(date +%s)"
+ssh -tt "${TARGET}" "curl -fsSL '${REPO_RAW}/scripts/remote-apply-splash.sh?${CB}' | sudo bash"
 
 echo "Done. Reboot the Pi (or use the plymouthd preview trick) to see it."
