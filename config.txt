@@ -39,6 +39,10 @@ disable_overscan=1
 # Run as fast as firmware / board allows
 arm_boost=1
 
+# Enable PCIe for the future NVMe HAT. Harmless no-op until the HAT is
+# physically attached - the controller just stays idle.
+dtparam=pciex1
+
 # Physical power button: momentary switch across GPIO3 (pin 5) and GND
 # (pin 6). Press to shut down cleanly; press again to power back on.
 dtoverlay=gpio-shutdown
