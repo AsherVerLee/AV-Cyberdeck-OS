@@ -57,6 +57,13 @@ curl -fsSL -o "${WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper.png?${CB}"
 curl -fsSL -o "${LOGIN_WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper-login.png?${CB}"
 chmod 644 "${WALLPAPER_PATH}" "${LOGIN_WALLPAPER_PATH}"
 
+# Also drop a copy in Pictures so it can be picked manually via
+# Desktop Preferences > Wallpaper > Browse, instead of relying on the
+# pcmanfm config automation below.
+install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/Pictures"
+cp "${WALLPAPER_PATH}" "${PI_HOME}/Pictures/av-cyberdeck-wallpaper.png"
+chown "${PI_USER}:${PI_USER}" "${PI_HOME}/Pictures/av-cyberdeck-wallpaper.png"
+
 PCMANFM_DIR="${PI_HOME}/.config/pcmanfm/LXDE-pi"
 DESKTOP_CONF="${PCMANFM_DIR}/desktop-items-0.conf"
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PCMANFM_DIR}"
