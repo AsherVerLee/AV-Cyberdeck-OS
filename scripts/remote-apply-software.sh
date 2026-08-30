@@ -74,9 +74,22 @@ fi
 
 echo "== Bettercap =="
 if ! command -v bettercap >/dev/null 2>&1; then
-  curl -fsSL https://raw.githubusercontent.com/bettercap/bettercap/master/install.sh | bash \
-    && echo "  [OK] bettercap" \
-    || echo "  [SKIPPED - bettercap installer failed]"
+  command -v unzip >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get install -y unzip >/dev/null 2>&1
+  BC_URL="$(curl -fsSL https://api.github.com/repos/bettercap/bettercap/releases/latest \
+    | grep -o 'https://[^"]*linux_arm64[^"]*\.zip' | head -n1)"
+  if [ -n "${BC_URL}" ]; then
+    curl -fsSL -o /tmp/bettercap.zip "${BC_URL}"
+    mkdir -p /tmp/bettercap-extract
+    unzip -o -q /tmp/bettercap.zip -d /tmp/bettercap-extract
+    if [ -f /tmp/bettercap-extract/bettercap ]; then
+      install -m 755 /tmp/bettercap-extract/bettercap /usr/local/bin/bettercap
+      echo "  [OK] bettercap"
+    else
+      echo "  [SKIPPED - downloaded archive didn't contain a bettercap binary]"
+    fi
+  else
+    echo "  [SKIPPED - couldn't find an arm64 release asset for bettercap]"
+  fi
 else
   echo "  [already installed] bettercap"
 fi
