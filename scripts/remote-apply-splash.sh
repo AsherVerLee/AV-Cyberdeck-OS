@@ -49,7 +49,7 @@ X-GNOME-Autostart-enabled=true
 AUTOSTART
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/autostart/av-wallpaper.desktop"
 # Apply immediately if a desktop session is already running.
-sudo -u "${PI_USER}" pcmanfm --set-wallpaper="${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png" --wallpaper-mode=stretch 2>/dev/null || true
+sudo -u "${PI_USER}" pcmanfm --set-wallpaper="${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png" --wallpaper-mode=stretch >/dev/null 2>&1 || true
 
 echo "== Dark theme =="
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.config/gtk-3.0"
@@ -59,10 +59,13 @@ gtk-application-prefer-dark-theme=1
 GTK
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
 
-echo "== config.txt overlays (power button + NeoPixel prep) =="
+echo "== config.txt overlays (power button) =="
 CONFIG=/boot/firmware/config.txt
 grep -qxF 'dtoverlay=gpio-shutdown' "${CONFIG}" || echo 'dtoverlay=gpio-shutdown' >> "${CONFIG}"
-grep -qxF 'dtoverlay=ws2812-pio' "${CONFIG}" || echo 'dtoverlay=ws2812-pio' >> "${CONFIG}"
+# Remove any bare ws2812-pio line from an earlier run of this script - with
+# no params it claims GPIO4 for a phantom 60-LED strip. Add it back with
+# real gpio=/leds= params once the NeoPixel wiring is finalized.
+sed -i '/^dtoverlay=ws2812-pio$/d' "${CONFIG}"
 
 echo ""
 echo "All style updates applied. Reboot to see the splash/wallpaper/overlays; open a new terminal or SSH session for the prompt/MOTD."

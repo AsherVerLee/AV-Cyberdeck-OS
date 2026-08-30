@@ -43,9 +43,11 @@ arm_boost=1
 # (pin 6). Press to shut down cleanly; press again to power back on.
 dtoverlay=gpio-shutdown
 
-# WS2812/NeoPixel support over PIO, ready for the 5 status LED buttons.
-# Idle/no-op until LEDs are actually wired up and driven by software.
-dtoverlay=ws2812-pio
+# WS2812/NeoPixel support over PIO for the 5 status LED buttons. Left
+# disabled until wiring is finalized - with no params this claims GPIO4
+# for a phantom 60-LED strip regardless of what's actually connected.
+# Once wired, enable with real params, e.g.:
+#dtoverlay=ws2812-pio,gpio=<pin>,leds=5
 
 [cm4]
 # Enable host mode on the 2711 built-in XHCI USB controller.
