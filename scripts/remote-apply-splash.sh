@@ -102,6 +102,11 @@ set_greeter_option() {
   fi
 }
 set_greeter_option "background" "${LOGIN_WALLPAPER_PATH}"
+# This Pi-customized greeter build actually reads wallpaper=/wallpaper_mode=
+# (a desktop-style background system) rather than the standard background=
+# key above - set both so it works regardless of which one this build honors.
+set_greeter_option "wallpaper" "${LOGIN_WALLPAPER_PATH}"
+set_greeter_option "wallpaper_mode" "crop"
 set_greeter_option "default-user-image" "${AVATAR_PATH}"
 set_greeter_option "round-user-image" "true"
 set_greeter_option "indicators" "~host;~spacer;~clock;~spacer;~session;~power"
