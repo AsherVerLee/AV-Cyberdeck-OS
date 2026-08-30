@@ -86,12 +86,27 @@ GTK
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
 
 echo "== Login screen =="
+AVATAR_PATH=/usr/share/av-cyberdeck/avatar-square.png
+curl -fsSL -o "${AVATAR_PATH}" "${REPO_RAW}/assets/avatar-square.png?${CB}"
+chmod 644 "${AVATAR_PATH}"
+
 GREETER_CONF=/etc/lightdm/pi-greeter.conf
-if grep -q '^background=' "${GREETER_CONF}"; then
-  sed -i "s|^background=.*|background=${LOGIN_WALLPAPER_PATH}|" "${GREETER_CONF}"
-else
-  sed -i "/^\[greeter\]/a background=${LOGIN_WALLPAPER_PATH}" "${GREETER_CONF}"
-fi
+set_greeter_option() {
+  local key="$1" value="$2"
+  if grep -q "^${key}=" "${GREETER_CONF}"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "${GREETER_CONF}"
+  elif grep -q "^#${key}=" "${GREETER_CONF}"; then
+    sed -i "s|^#${key}=.*|${key}=${value}|" "${GREETER_CONF}"
+  else
+    sed -i "/^\[greeter\]/a ${key}=${value}" "${GREETER_CONF}"
+  fi
+}
+set_greeter_option "background" "${LOGIN_WALLPAPER_PATH}"
+set_greeter_option "default-user-image" "${AVATAR_PATH}"
+set_greeter_option "round-user-image" "true"
+set_greeter_option "indicators" "~host;~spacer;~clock;~spacer;~session;~power"
+set_greeter_option "clock-format" "%H:%M"
+
 raspi-config nonint do_boot_behaviour B3
 echo "Autologin disabled (boot_behaviour=B3); greeter background set."
 echo "To revert to autologin: sudo raspi-config nonint do_boot_behaviour B4"
