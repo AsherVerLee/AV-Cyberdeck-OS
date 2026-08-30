@@ -41,14 +41,18 @@ echo "== Wallpaper =="
 # present, and instead write the config file the real instance already
 # reads on its own - no second process involved.
 rm -f "${PI_HOME}/.config/autostart/av-wallpaper.desktop"
+# Also drop the old per-user copy from an earlier run - superseded by the
+# shared system-wide copy below, which the greeter's separate system user
+# can also read (a home directory may not be traversable by other users).
+rm -f "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
 
-install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.local/share/av-cyberdeck"
-curl -fsSL -o "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png" "${REPO_RAW}/assets/wallpaper.png"
-chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
+WALLPAPER_PATH=/usr/share/av-cyberdeck/wallpaper.png
+install -d -m 755 /usr/share/av-cyberdeck
+curl -fsSL -o "${WALLPAPER_PATH}" "${REPO_RAW}/assets/wallpaper.png"
+chmod 644 "${WALLPAPER_PATH}"
 
 PCMANFM_DIR="${PI_HOME}/.config/pcmanfm/LXDE-pi"
 DESKTOP_CONF="${PCMANFM_DIR}/desktop-items-0.conf"
-WALLPAPER_PATH="${PI_HOME}/.local/share/av-cyberdeck/wallpaper.png"
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PCMANFM_DIR}"
 if [ -f "${DESKTOP_CONF}" ]; then
   grep -q '^wallpaper=' "${DESKTOP_CONF}" \
@@ -74,6 +78,17 @@ cat > "${PI_HOME}/.config/gtk-3.0/settings.ini" <<GTK
 gtk-application-prefer-dark-theme=1
 GTK
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
+
+echo "== Login screen =="
+GREETER_CONF=/etc/lightdm/pi-greeter.conf
+if grep -q '^background=' "${GREETER_CONF}"; then
+  sed -i "s|^background=.*|background=${WALLPAPER_PATH}|" "${GREETER_CONF}"
+else
+  sed -i "/^\[greeter\]/a background=${WALLPAPER_PATH}" "${GREETER_CONF}"
+fi
+raspi-config nonint do_boot_behaviour B3
+echo "Autologin disabled (boot_behaviour=B3); greeter background set."
+echo "To revert to autologin: sudo raspi-config nonint do_boot_behaviour B4"
 
 echo "== config.txt overlays (power button) =="
 CONFIG=/boot/firmware/config.txt
