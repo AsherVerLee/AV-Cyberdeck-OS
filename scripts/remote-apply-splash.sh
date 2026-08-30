@@ -85,12 +85,21 @@ fi
 chown "${PI_USER}:${PI_USER}" "${DESKTOP_CONF}"
 
 echo "== Dark theme =="
+# Merge into the existing file rather than overwriting it - a blind
+# overwrite here previously wiped out this OS's own gtk-icon-theme-name
+# (PiXtrix), leaving desktop icons like Trash with no image.
+GTK_CONF="${PI_HOME}/.config/gtk-3.0/settings.ini"
 install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.config/gtk-3.0"
-cat > "${PI_HOME}/.config/gtk-3.0/settings.ini" <<GTK
-[Settings]
-gtk-application-prefer-dark-theme=1
-GTK
-chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
+if [ ! -f "${GTK_CONF}" ]; then
+  printf '%s\n' '[Settings]' > "${GTK_CONF}"
+fi
+grep -q '^gtk-application-prefer-dark-theme=' "${GTK_CONF}" \
+  && sed -i 's|^gtk-application-prefer-dark-theme=.*|gtk-application-prefer-dark-theme=1|' "${GTK_CONF}" \
+  || sed -i '/^\[Settings\]/a gtk-application-prefer-dark-theme=1' "${GTK_CONF}"
+if ! grep -q '^gtk-icon-theme-name=' "${GTK_CONF}"; then
+  sed -i '/^\[Settings\]/a gtk-icon-theme-name=PiXtrix' "${GTK_CONF}"
+fi
+chown "${PI_USER}:${PI_USER}" "${GTK_CONF}"
 
 echo "== On-screen keyboard =="
 # squeekboard (system autostart at /etc/xdg/autostart/squeekboard.desktop)
