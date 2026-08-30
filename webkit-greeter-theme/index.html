@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AV Cyberdeck Login</title>
+<style>
+  :root {
+    --yellow: #fee801;
+    --teal: #39c4b6;
+    --cyan: #54c1e6;
+    --olive: #9a9f17;
+    --navy: #00060e;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
+    background: var(--navy);
+  }
+  #background {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("background.png");
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+  }
+  #scrim {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 6, 14, 0.35);
+    z-index: 1;
+  }
+  #stage {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #f5f5f0;
+  }
+  #date {
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  }
+  #clock {
+    font-size: 88px;
+    font-weight: 200;
+    letter-spacing: 0.01em;
+    margin-bottom: 56px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    font-variant-numeric: tabular-nums;
+  }
+  #avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #1a2230, var(--navy));
+    border: 2px solid var(--teal);
+    box-shadow: 0 0 24px rgba(57, 196, 182, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  #avatar img {
+    width: 56px;
+    height: auto;
+    opacity: 0.95;
+  }
+  #username {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  }
+  #password-input {
+    width: 240px;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0, 6, 14, 0.55);
+    color: #f5f5f0;
+    outline: none;
+    text-align: center;
+    backdrop-filter: blur(6px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  #password-input::placeholder {
+    color: rgba(245, 245, 240, 0.5);
+  }
+  #password-input:focus {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(254, 232, 1, 0.15);
+  }
+  #message {
+    margin-top: 14px;
+    font-size: 13px;
+    min-height: 16px;
+    letter-spacing: 0.01em;
+  }
+  #message.error {
+    color: #ff8a8a;
+  }
+  #message.info {
+    color: var(--cyan);
+  }
+</style>
+</head>
+<body>
+  <div id="background"></div>
+  <div id="scrim"></div>
+  <div id="stage">
+    <div id="date"></div>
+    <div id="clock"></div>
+    <div id="avatar"><img src="avatar.png" alt=""></div>
+    <div id="username">asherverlee</div>
+    <input id="password-input" type="password" placeholder="Enter Password" disabled
+      onkeydown="if (event.key === 'Enter') { submitResponse(); }">
+    <div id="message"></div>
+  </div>
+
+<script>
+  var GREETER_USER = "asherverlee";
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function updateClock() {
+    var now = new Date();
+    var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    document.getElementById("date").textContent =
+      days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate();
+    document.getElementById("clock").textContent =
+      pad(now.getHours()) + ":" + pad(now.getMinutes());
+  }
+
+  function submitResponse() {
+    var input = document.getElementById("password-input");
+    var value = input.value;
+    input.value = "";
+    input.disabled = true;
+    window.lightdm.respond(value);
+  }
+
+  window.show_prompt = function (text, type) {
+    var input = document.getElementById("password-input");
+    input.type = (type === "text") ? "text" : "password";
+    input.disabled = false;
+    input.value = "";
+    input.focus();
+  };
+
+  window.show_message = function (text, type) {
+    var el = document.getElementById("message");
+    el.textContent = text;
+    el.className = (type === "error") ? "error" : "info";
+  };
+
+  window.authentication_complete = function () {
+    var el = document.getElementById("message");
+    if (window.lightdm.is_authenticated) {
+      el.className = "info";
+      el.textContent = "Welcome back.";
+      window.lightdm.start_session(window.lightdm.default_session);
+    } else {
+      el.className = "error";
+      el.textContent = "Incorrect password, try again.";
+      window.lightdm.authenticate(GREETER_USER);
+    }
+  };
+
+  window.onload = function () {
+    updateClock();
+    setInterval(updateClock, 1000);
+    window.lightdm.authenticate(GREETER_USER);
+  };
+</script>
+</body>
+</html>
