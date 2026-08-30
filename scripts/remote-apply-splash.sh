@@ -92,6 +92,16 @@ gtk-application-prefer-dark-theme=1
 GTK
 chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/gtk-3.0/settings.ini"
 
+echo "== On-screen keyboard =="
+# squeekboard (system autostart at /etc/xdg/autostart/squeekboard.desktop)
+# was getting stuck showing a blank surface instead of hiding itself.
+# Since a physical keyboard is planned for this build, disable it per-user
+# via the standard XDG override rather than fighting its behavior.
+pkill squeekboard >/dev/null 2>&1 || true
+install -o "${PI_USER}" -g "${PI_USER}" -m 755 -d "${PI_HOME}/.config/autostart"
+printf '%s\n' '[Desktop Entry]' 'Hidden=true' > "${PI_HOME}/.config/autostart/squeekboard.desktop"
+chown "${PI_USER}:${PI_USER}" "${PI_HOME}/.config/autostart/squeekboard.desktop"
+
 echo "== Login screen =="
 AVATAR_PATH=/usr/share/av-cyberdeck/avatar-square.png
 curl -fsSL -o "${AVATAR_PATH}" "${REPO_RAW}/assets/avatar-square.png?${CB}"
