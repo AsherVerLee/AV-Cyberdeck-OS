@@ -13,6 +13,31 @@ apt:
     };
 timezone: America/Chicago
 write_files:
+  - path: /etc/update-motd.d/10-av-cyberdeck
+    owner: root:root
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      # AV Cyberdeck login banner.
+
+      TEAL='\033[38;2;57;196;182m'
+      YELLOW='\033[1m\033[38;2;254;232;1m'
+      OLIVE='\033[38;2;154;159;23m'
+      RESET='\033[0m'
+
+      printf '%b\n' "${TEAL}╔════════════════════════════════════════╗${RESET}"
+      printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
+      printf '%b\n' "${TEAL}║${RESET}        ${YELLOW}A V   C Y B E R D E C K${RESET}         ${TEAL}║${RESET}"
+      printf '%b\n' "${TEAL}║${RESET}       ${OLIVE}portable. modular. yours.${RESET}        ${TEAL}║${RESET}"
+      printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
+      printf '%b\n' "${TEAL}╚════════════════════════════════════════╝${RESET}"
+      printf '\n'
+  - path: /etc/bash.bashrc
+    append: true
+    content: |
+
+      # AV Cyberdeck prompt
+      PS1='\[\e[38;2;254;232;1m\]\u@\h \[\e[38;2;57;196;182m\]\w \[\e[38;2;154;159;23m\]\$\[\e[0m\] '
   - path: /usr/share/plymouth/themes/av-cyberdeck/av-cyberdeck.plymouth
     owner: root:root
     permissions: '0644'
@@ -174,6 +199,12 @@ runcmd:
   - [ systemctl, enable, --now, ssh ]
   - [ cp, /boot/firmware/assets/av-logo.png, /usr/share/plymouth/themes/av-cyberdeck/av-logo.png ]
   - [ plymouth-set-default-theme, -R, av-cyberdeck ]
+  - [ sh, -c, "install -o asherverlee -g asherverlee -m 755 -d /home/asherverlee/.local/share/av-cyberdeck" ]
+  - [ sh, -c, "cp /boot/firmware/assets/wallpaper.png /home/asherverlee/.local/share/av-cyberdeck/wallpaper.png && chown asherverlee:asherverlee /home/asherverlee/.local/share/av-cyberdeck/wallpaper.png" ]
+  - [ sh, -c, "install -o asherverlee -g asherverlee -m 755 -d /home/asherverlee/.config/autostart" ]
+  - [ sh, -c, "printf '%s\n' '[Desktop Entry]' 'Type=Application' 'Name=AV Cyberdeck Wallpaper' 'Exec=pcmanfm --set-wallpaper=/home/asherverlee/.local/share/av-cyberdeck/wallpaper.png --wallpaper-mode=stretch' 'X-GNOME-Autostart-enabled=true' > /home/asherverlee/.config/autostart/av-wallpaper.desktop && chown asherverlee:asherverlee /home/asherverlee/.config/autostart/av-wallpaper.desktop" ]
+  - [ sh, -c, "install -o asherverlee -g asherverlee -m 755 -d /home/asherverlee/.config/gtk-3.0" ]
+  - [ sh, -c, "printf '%s\n' '[Settings]' 'gtk-application-prefer-dark-theme=1' > /home/asherverlee/.config/gtk-3.0/settings.ini && chown asherverlee:asherverlee /home/asherverlee/.config/gtk-3.0/settings.ini" ]
   - [ sh, -c, "install -o asherverlee -m 700 -d /home/asherverlee/.config/com.raspberrypi.connect" ]
   - [ sh, -c, "printf '%s\n' 'REPLACE_WITH_YOUR_OWN_RPI_CONNECT_AUTH_KEY' > /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chown asherverlee:asherverlee /home/asherverlee/.config/com.raspberrypi.connect/auth.key && chmod 600 /home/asherverlee/.config/com.raspberrypi.connect/auth.key" ]
   - [ sh, -c, "install -o asherverlee -m 700 -d /home/asherverlee/.config/systemd/user/default.target.wants /home/asherverlee/.config/systemd/user/paths.target.wants" ]

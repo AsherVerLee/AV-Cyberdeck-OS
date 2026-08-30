@@ -1,0 +1,15 @@
+#!/bin/sh
+# AV Cyberdeck login banner. Deployed to /etc/update-motd.d/10-av-cyberdeck.
+
+TEAL='\033[38;2;57;196;182m'
+YELLOW='\033[1m\033[38;2;254;232;1m'
+OLIVE='\033[38;2;154;159;23m'
+RESET='\033[0m'
+
+printf '%b\n' "${TEAL}╔════════════════════════════════════════╗${RESET}"
+printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
+printf '%b\n' "${TEAL}║${RESET}        ${YELLOW}A V   C Y B E R D E C K${RESET}         ${TEAL}║${RESET}"
+printf '%b\n' "${TEAL}║${RESET}       ${OLIVE}portable. modular. yours.${RESET}        ${TEAL}║${RESET}"
+printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
+printf '%b\n' "${TEAL}╚════════════════════════════════════════╝${RESET}"
+printf '\n'

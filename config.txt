@@ -39,6 +39,14 @@ disable_overscan=1
 # Run as fast as firmware / board allows
 arm_boost=1
 
+# Physical power button: momentary switch across GPIO3 (pin 5) and GND
+# (pin 6). Press to shut down cleanly; press again to power back on.
+dtoverlay=gpio-shutdown
+
+# WS2812/NeoPixel support over PIO, ready for the 5 status LED buttons.
+# Idle/no-op until LEDs are actually wired up and driven by software.
+dtoverlay=ws2812-pio
+
 [cm4]
 # Enable host mode on the 2711 built-in XHCI USB controller.
 # This line should be removed if the legacy DWC2 controller is required
