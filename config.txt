@@ -47,6 +47,23 @@ dtparam=pciex1
 # (pin 6). Press to shut down cleanly; press again to power back on.
 dtoverlay=gpio-shutdown
 
+# More aggressive Active Cooler fan curve than the firmware default -
+# ramps up earlier/harder since it's sealed in a case with less airflow
+# than an open board. Temps in millidegrees C, speed 0-255.
+dtparam=cooling_fan=on
+dtparam=fan_temp0=45000
+dtparam=fan_temp0_hyst=2500
+dtparam=fan_temp0_speed=60
+dtparam=fan_temp1=52000
+dtparam=fan_temp1_hyst=2500
+dtparam=fan_temp1_speed=120
+dtparam=fan_temp2=60000
+dtparam=fan_temp2_hyst=2500
+dtparam=fan_temp2_speed=180
+dtparam=fan_temp3=68000
+dtparam=fan_temp3_hyst=2500
+dtparam=fan_temp3_speed=255
+
 # WS2812/NeoPixel support over PIO for the 5 status LED buttons. Left
 # disabled until wiring is finalized - with no params this claims GPIO4
 # for a phantom 60-LED strip regardless of what's actually connected.

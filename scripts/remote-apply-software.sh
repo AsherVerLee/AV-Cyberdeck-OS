@@ -49,8 +49,72 @@ for pkg in vlc cmatrix hollywood figlet lolcat retroarch; do
   install_pkg "${pkg}"
 done
 
+echo "== Standalone emulators =="
+for pkg in ppsspp flycast dolphin-emu mgba-qt; do
+  install_pkg "${pkg}"
+done
+
+echo "== Extra security toolkit =="
+for pkg in kismet john; do
+  install_pkg "${pkg}"
+done
+
 echo "== Productivity =="
-install_pkg calibre
+for pkg in calibre pass syncthing gparted; do
+  install_pkg "${pkg}"
+done
+# kiwix (offline Wikipedia/Gutenberg reader) - package name varies by
+# release; try the desktop app first, fall back to the CLI server tool.
+if ! dpkg -s kiwix >/dev/null 2>&1 && ! dpkg -s kiwix-tools >/dev/null 2>&1; then
+  install_pkg kiwix
+  dpkg -s kiwix >/dev/null 2>&1 || install_pkg kiwix-tools
+else
+  echo "  [already installed] kiwix"
+fi
+
+echo "== VS Code =="
+if ! command -v code >/dev/null 2>&1; then
+  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
+  echo "deb [arch=arm64,armhf,amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list
+  apt-get update -qq
+  install_pkg code
+else
+  echo "  [already installed] code"
+fi
+
+echo "== Obsidian =="
+if ! command -v obsidian >/dev/null 2>&1; then
+  OBS_URL="$(curl -fsSL https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
+    | grep -o 'https://[^"]*arm64\.deb' | head -n1)"
+  if [ -n "${OBS_URL}" ]; then
+    curl -fsSL -o /tmp/obsidian.deb "${OBS_URL}"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/obsidian.deb >/tmp/install-obsidian.log 2>&1 \
+      && echo "  [OK] obsidian" \
+      || echo "  [SKIPPED - obsidian .deb failed to install, see /tmp/install-obsidian.log]"
+  else
+    echo "  [SKIPPED - couldn't find an arm64 .deb release for Obsidian]"
+  fi
+else
+  echo "  [already installed] obsidian"
+fi
+
+echo "== Portainer (Docker container GUI) =="
+if command -v docker >/dev/null 2>&1; then
+  if ! docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx portainer; then
+    docker volume create portainer_data >/dev/null 2>&1
+    if docker run -d -p 9000:9000 --name portainer --restart=always \
+      -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data \
+      portainer/portainer-ce:latest >/tmp/install-portainer.log 2>&1; then
+      echo "  [OK] portainer - visit http://ashdeck.local:9000 once it starts"
+    else
+      echo "  [SKIPPED - portainer container failed, see /tmp/install-portainer.log]"
+    fi
+  else
+    echo "  [already installed] portainer"
+  fi
+else
+  echo "  [SKIPPED - docker not installed]"
+fi
 
 echo "== Docker =="
 if ! command -v docker >/dev/null 2>&1; then
@@ -129,6 +193,15 @@ command -v retroarch >/dev/null 2>&1 && make_shortcut "RetroArch" "retroarch" "r
 command -v ettercap >/dev/null 2>&1 && make_shortcut "Ettercap" "ettercap -G" "ettercap" "false"
 command -v cmatrix >/dev/null 2>&1 && make_shortcut "Matrix" "cmatrix" "utilities-terminal" "true"
 command -v hollywood >/dev/null 2>&1 && make_shortcut "Hollywood" "hollywood" "utilities-terminal" "true"
+command -v ppsspp >/dev/null 2>&1 && make_shortcut "PPSSPP" "ppsspp" "ppsspp" "false"
+command -v flycast >/dev/null 2>&1 && make_shortcut "Flycast" "flycast" "flycast" "false"
+command -v dolphin-emu >/dev/null 2>&1 && make_shortcut "Dolphin" "dolphin-emu" "dolphin-emu" "false"
+command -v mgba-qt >/dev/null 2>&1 && make_shortcut "mGBA" "mgba-qt" "io.mgba.mGBA" "false"
+command -v kismet >/dev/null 2>&1 && make_shortcut "Kismet" "kismet" "utilities-terminal" "true"
+command -v code >/dev/null 2>&1 && make_shortcut "VSCode" "code" "code" "false"
+command -v obsidian >/dev/null 2>&1 && make_shortcut "Obsidian" "obsidian" "obsidian" "false"
+command -v kiwix >/dev/null 2>&1 && make_shortcut "Kiwix" "kiwix" "kiwix" "false"
+command -v gparted >/dev/null 2>&1 && make_shortcut "GParted" "gparted" "gparted" "false"
 
 echo ""
 echo "Done. Log out and back in (or reboot) for group changes (docker/wireshark)"
