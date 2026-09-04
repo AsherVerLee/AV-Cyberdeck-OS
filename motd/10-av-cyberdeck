@@ -9,7 +9,7 @@ RESET='\033[0m'
 printf '%b\n' "${TEAL}╔════════════════════════════════════════╗${RESET}"
 printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
 printf '%b\n' "${TEAL}║${RESET}        ${YELLOW}A V   C Y B E R D E C K${RESET}         ${TEAL}║${RESET}"
-printf '%b\n' "${TEAL}║${RESET}       ${OLIVE}portable. modular. yours.${RESET}        ${TEAL}║${RESET}"
+printf '%b\n' "${TEAL}║${RESET}              ${OLIVE}Asher Verlee${RESET}              ${TEAL}║${RESET}"
 printf '%b\n' "${TEAL}║${RESET}                    ${YELLOW}${RESET}                    ${TEAL}║${RESET}"
 printf '%b\n' "${TEAL}╚════════════════════════════════════════╝${RESET}"
 printf '\n'
